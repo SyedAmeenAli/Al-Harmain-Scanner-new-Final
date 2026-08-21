@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install --legacy-peer-deps",
+  "buildCommand": "CI=false npm run build",
   "env": {
     "REACT_APP_API_BASE": "https://al-harmain-backend.vercel.app",
     "REACT_APP_BACKEND_URL": "https://al-harmain-backend.vercel.app",
