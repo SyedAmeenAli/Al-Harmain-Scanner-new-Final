@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { resolveBookVisual } from '../../bookExperience/data/resolveBookVisual';
+import { getApiBase } from '@/experience/utils/apiClient';
 
 export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
@@ -13,7 +14,7 @@ export default function AdminDashboard() {
   const load = async (reset = false) => {
     setLoading(true);
     const p = reset ? 1 : page;
-    const res = await fetch(`/api/admin/catalogue?page=${p}&limit=30${q ? `&q=${q}` : ''}`);
+    const res = await fetch(`${getApiBase()}/api/admin/catalogue?page=${p}&limit=30${q ? `&q=${q}` : ''}`, { credentials: 'include' });
     const data = await res.json();
 
     if (!res.ok) {
@@ -47,7 +48,7 @@ export default function AdminDashboard() {
   }, [q]);
   
   const handleLogout = async () => {
-    await fetch("/api/admin/auth/logout", { method: "POST" });
+    await fetch(`${getApiBase()}/api/admin/auth/logout`, { method: "POST", credentials: 'include' });
     window.location.reload();
   };
 

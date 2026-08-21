@@ -20,6 +20,13 @@ logger = logging.getLogger("alharamain.admin")
 # production mode for this store, see deployment/README.md — works out of
 # the box. Set COOKIE_SECURE=true only once the store terminates real TLS.
 COOKIE_SECURE = os.environ.get("COOKIE_SECURE", "false").strip().lower() == "true"
+# Split-origin deploys (frontend and backend on different domains, e.g. two
+# separate Vercel projects) need SameSite=None for the browser to send the
+# session cookie on cross-origin fetches at all — Lax/Strict only ever ride
+# along on same-site requests. None requires Secure=true (enforced by
+# browsers), so this is opt-in via env, not a silent default change; the
+# documented same-origin/LAN production mode keeps "lax".
+COOKIE_SAMESITE = os.environ.get("COOKIE_SAMESITE", "lax").strip().lower()
 ADMIN_SESSION_HOURS = int(os.environ.get("ADMIN_SESSION_HOURS", "12"))
 
 try:
@@ -130,7 +137,7 @@ def login(req: LoginRequest, request: Request, response: Response, conn: sqlite3
         key="admin_session",
         value=raw_token,
         httponly=True,
-        samesite="lax", # For local dev across ports sometimes needs lax, but we prefer strict if same origin. CRA proxy uses same origin.
+        samesite=COOKIE_SAMESITE, # "lax" same-origin/LAN default; "none" (+ COOKIE_SECURE=true) for split-origin deploys.
         secure=COOKIE_SECURE,  # env-controlled: false = supported HTTP-on-LAN mode, true = requires real HTTPS
         max_age=ADMIN_SESSION_HOURS * 60 * 60
     )

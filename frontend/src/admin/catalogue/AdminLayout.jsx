@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./admin.css";
+import { getApiBase } from "@/experience/utils/apiClient";
 
 const ADMIN_LOGO = `${process.env.PUBLIC_URL}/assets/brand/logo-al-haramain.png`;
 
@@ -15,7 +16,7 @@ export default function AdminLayout({ children }) {
 
   const checkAuth = async () => {
     try {
-      const res = await fetch("/api/admin/auth/me");
+      const res = await fetch(`${getApiBase()}/api/admin/auth/me`, { credentials: "include" });
       if (res.ok) {
         setIsAuthenticated(true);
       }
@@ -28,10 +29,11 @@ export default function AdminLayout({ children }) {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/auth/login", {
+      const res = await fetch(`${getApiBase()}/api/admin/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pin }),
+        credentials: "include",
       });
       if (res.ok) {
         setIsAuthenticated(true);

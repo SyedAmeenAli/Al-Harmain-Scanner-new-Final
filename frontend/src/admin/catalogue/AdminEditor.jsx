@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { resolveBookVisual } from '../../bookExperience/data/resolveBookVisual';
+import { getApiBase } from '@/experience/utils/apiClient';
 
 export default function AdminEditor({ isNew }) {
   const { id } = useParams();
@@ -15,7 +16,7 @@ export default function AdminEditor({ isNew }) {
 
   useEffect(() => {
     if (!isNew && id) {
-      fetch(`/api/admin/catalogue/${id}`).then(r => r.json()).then(d => {
+      fetch(`${getApiBase()}/api/admin/catalogue/${id}`, { credentials: 'include' }).then(r => r.json()).then(d => {
         setData(d);
         setLoading(false);
       });
@@ -25,12 +26,13 @@ export default function AdminEditor({ isNew }) {
   const save = async () => {
     setSaving(true);
     const method = isNew ? 'POST' : 'PATCH';
-    const url = isNew ? '/api/admin/catalogue' : `/api/admin/catalogue/${id}`;
-    
+    const url = `${getApiBase()}${isNew ? '/api/admin/catalogue' : `/api/admin/catalogue/${id}`}`;
+
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      credentials: 'include'
     });
     
     if (res.ok) {
@@ -39,9 +41,10 @@ export default function AdminEditor({ isNew }) {
       if (file) {
         const formData = new FormData();
         formData.append('file', file);
-        await fetch(`/api/admin/catalogue/${savedData.slug}/images`, {
+        await fetch(`${getApiBase()}/api/admin/catalogue/${savedData.slug}/images`, {
           method: 'POST',
-          body: formData
+          body: formData,
+          credentials: 'include'
         });
       }
       navigate('/admin/catalogue');
@@ -59,14 +62,14 @@ export default function AdminEditor({ isNew }) {
 
   const handleDelete = async () => {
     if (window.confirm("Soft delete this product?")) {
-      await fetch(`/api/admin/catalogue/${id}`, { method: 'DELETE' });
+      await fetch(`${getApiBase()}/api/admin/catalogue/${id}`, { method: 'DELETE', credentials: 'include' });
       navigate('/admin/catalogue');
     }
   };
   
   const handleRestore = async () => {
     if (window.confirm("Restore this product?")) {
-      await fetch(`/api/admin/catalogue/${id}/restore`, { method: 'POST' });
+      await fetch(`${getApiBase()}/api/admin/catalogue/${id}/restore`, { method: 'POST', credentials: 'include' });
       alert("Restored!");
     }
   };

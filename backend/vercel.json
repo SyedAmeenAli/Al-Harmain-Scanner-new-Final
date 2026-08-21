@@ -9,6 +9,7 @@
   "env": {
     "APP_ENV": "production",
     "CORS_ORIGINS": "*",
-    "COOKIE_SECURE": "true"
+    "COOKIE_SECURE": "true",
+    "COOKIE_SAMESITE": "none"
   }
 }
