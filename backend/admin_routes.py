@@ -5,6 +5,7 @@ import sqlite3
 import bcrypt
 import secrets
 import hashlib
+import hmac
 import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,6 +15,35 @@ import io
 import catalogue_db
 
 logger = logging.getLogger("alharamain.admin")
+
+# Read-only Vercel deploys (catalogue_db.READ_ONLY_FS) can't INSERT/UPDATE a
+# session row — SQLite is opened file:...?mode=ro there. Session auth falls
+# back to a stateless signed cookie (expiry + HMAC, no DB row) ONLY on that
+# path; local/LAN production keeps the existing DB-tracked session exactly
+# as-is (revocable via logout, visible in admin_sessions). Needs a stable
+# secret shared across all serverless instances, so it must come from env —
+# never generated at import time (each cold-started instance would mint a
+# different one and reject every other instance's cookies).
+ADMIN_SESSION_SECRET = os.environ.get("ADMIN_SESSION_SECRET", "")
+
+
+def _sign_stateless_session(expires_at: datetime) -> str:
+    payload = str(int(expires_at.timestamp()))
+    sig = hmac.new(ADMIN_SESSION_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+    return f"{payload}.{sig}"
+
+
+def _verify_stateless_session(token: str) -> bool:
+    if not ADMIN_SESSION_SECRET:
+        return False
+    try:
+        payload, sig = token.rsplit(".", 1)
+        expected = hmac.new(ADMIN_SESSION_SECRET.encode(), payload.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            return False
+        return datetime.now(timezone.utc).timestamp() < int(payload)
+    except (ValueError, TypeError):
+        return False
 
 # COOKIE_SECURE=true requires HTTPS (browsers silently drop Secure cookies
 # over plain HTTP). Default false so HTTP-on-isolated-LAN — the documented
@@ -83,18 +113,23 @@ def get_admin(request: Request, session_token: str = Depends(cookie_sec), conn: 
 
     if not session_token:
         raise HTTPException(status_code=401, detail="Not authenticated")
-    
+
+    if catalogue_db.READ_ONLY_FS:
+        if not _verify_stateless_session(session_token):
+            raise HTTPException(status_code=401, detail="Invalid session")
+        return True
+
     token_hash = hashlib.sha256(session_token.encode()).hexdigest()
-    
+
     row = conn.execute("SELECT * FROM admin_sessions WHERE token_hash = ? AND revoked_at IS NULL", (token_hash,)).fetchone()
     if not row:
         raise HTTPException(status_code=401, detail="Invalid session")
-        
+
     expires_at = datetime.fromisoformat(row["expires_at"])
     now = datetime.now(timezone.utc)
     if now > expires_at:
         raise HTTPException(status_code=401, detail="Session expired")
-        
+
     conn.execute("UPDATE admin_sessions SET last_seen_at = ? WHERE id = ?", (now.isoformat(), row["id"]))
     conn.commit()
     return True
@@ -119,18 +154,24 @@ def login(req: LoginRequest, request: Request, response: Response, conn: sqlite3
     # Clear rate limit on success
     rate_limits.pop(ip, None)
 
-    # Generate session
-    raw_token = secrets.token_urlsafe(32)
-    token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
-
     now = datetime.now(timezone.utc)
     expires = now + timedelta(hours=ADMIN_SESSION_HOURS)
 
-    conn.execute(
-        "INSERT INTO admin_sessions (token_hash, created_at, expires_at, last_seen_at) VALUES (?, ?, ?, ?)",
-        (token_hash, now.isoformat(), expires.isoformat(), now.isoformat())
-    )
-    conn.commit()
+    if catalogue_db.READ_ONLY_FS:
+        if not ADMIN_SESSION_SECRET:
+            logger.error("READ_ONLY_FS but ADMIN_SESSION_SECRET is unset — refusing to mint an unsigned session")
+            raise HTTPException(status_code=503, detail="admin_session_secret_not_configured")
+        # No DB write available — stateless signed cookie carries its own
+        # expiry, nothing to INSERT.
+        raw_token = _sign_stateless_session(expires)
+    else:
+        raw_token = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(raw_token.encode()).hexdigest()
+        conn.execute(
+            "INSERT INTO admin_sessions (token_hash, created_at, expires_at, last_seen_at) VALUES (?, ?, ?, ?)",
+            (token_hash, now.isoformat(), expires.isoformat(), now.isoformat())
+        )
+        conn.commit()
     logger.info("Admin login succeeded (ip=%s)", ip)  # never logs the PIN or token
 
     response.set_cookie(
@@ -145,7 +186,10 @@ def login(req: LoginRequest, request: Request, response: Response, conn: sqlite3
 
 @router.post("/auth/logout")
 def logout(response: Response, session_token: str = Depends(cookie_sec), conn: sqlite3.Connection = Depends(get_db)):
-    if session_token:
+    if session_token and not catalogue_db.READ_ONLY_FS:
+        # Stateless sessions (read-only path) can't be individually revoked
+        # without a DB row — they simply expire (ADMIN_SESSION_HOURS).
+        # Deleting the cookie below still logs this browser out immediately.
         token_hash = hashlib.sha256(session_token.encode()).hexdigest()
         now = datetime.now(timezone.utc).isoformat()
         conn.execute("UPDATE admin_sessions SET revoked_at = ? WHERE token_hash = ?", (now, token_hash))

@@ -10,6 +10,7 @@
     "APP_ENV": "production",
     "CORS_ORIGINS": "*",
     "COOKIE_SECURE": "true",
-    "COOKIE_SAMESITE": "none"
+    "COOKIE_SAMESITE": "none",
+    "ADMIN_SESSION_SECRET": "cqUcNSkiZpYSr_kQORmthNZ_6Q3XN318_OPCh9hqWC6mIAtZpbtVAIrwIKK8TGa4"
   }
 }
