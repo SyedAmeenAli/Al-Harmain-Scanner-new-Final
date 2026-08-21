@@ -1,2 +1,16 @@
+[project]
+name = "al-harmain-backend"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    "python-dotenv>=1.0",
+    "python-multipart>=0.0.9",
+    "pydantic>=2.0",
+    "starlette>=0.38",
+    "bcrypt>=4.0",
+]
+
 [tool.vercel]
 entrypoint = "server:app"
