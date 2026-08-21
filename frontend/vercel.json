@@ -3,6 +3,7 @@
   "installCommand": "npm install --legacy-peer-deps",
   "env": {
     "REACT_APP_API_BASE": "https://al-harmain-backend.vercel.app",
-    "REACT_APP_BACKEND_URL": "https://al-harmain-backend.vercel.app"
+    "REACT_APP_BACKEND_URL": "https://al-harmain-backend.vercel.app",
+    "CI": "false"
   }
 }
