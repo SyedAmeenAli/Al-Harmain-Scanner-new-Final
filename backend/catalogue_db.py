@@ -84,6 +84,9 @@ def slugify(text: str) -> str:
 
 def init_catalogue_db() -> None:
     """Create the schema if it does not exist yet."""
+    if READ_ONLY_FS:
+        # Serverless/read-only deploy: DB ships pre-seeded, nothing to create.
+        return
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _connect() as conn:
         for stmt in SCHEMA_STATEMENTS:
@@ -91,7 +94,19 @@ def init_catalogue_db() -> None:
         conn.commit()
 
 
+# Vercel (and other read-only-filesystem serverless platforms) can't open the
+# shipped SQLite file read-write — WAL mode needs to create -wal/-shm files
+# next to it, and even a plain rw open can fail on a read-only mount. Detect
+# that once at import time and fall back to an explicit read-only URI open.
+READ_ONLY_FS = bool(os.environ.get("VERCEL") or os.environ.get("READ_ONLY_DB"))
+
+
 def _connect() -> sqlite3.Connection:
+    if READ_ONLY_FS:
+        conn = sqlite3.connect(f"file:{DB_PATH}?mode=ro&immutable=1", uri=True)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys=ON")
+        return conn
     conn = sqlite3.connect(str(DB_PATH))
     conn.row_factory = sqlite3.Row
     # Production-sensible pragmas: WAL allows concurrent readers while the
