@@ -1,0 +1,8 @@
+/* App-scoped CSS for the Museum of Scent */
+.App {
+  background-color: var(--ah-ivory);
+  color: var(--ah-ink);
+  min-height: 100vh;
+  font-family: "Outfit", sans-serif;
+  font-weight: 300;
+}

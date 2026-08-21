@@ -1,0 +1,1241 @@
+/* =========================================================
+   THE BOOK OF FRAGRANCES — Al Haramain Book Experience
+   Scoped under `.book-experience`. Palette tokens reused verbatim from
+   experience/experience.css (same brand hex values — never re-invented).
+   ========================================================= */
+
+/* index.css sets html/body/#root to --ah-ivory (#fbf8f2), a different warm
+   off-white than .book-experience's own --bk-ivory-deep (#F1F5E0). The Book
+   shell is deliberately a centered max-width:26.5rem "mobile stage" on
+   desktop (do not remove that — it's an explicit product requirement, not a
+   bug), but the two different background colors created a real visible
+   rectangle around it on any viewport wider than 424px — this is the exact
+   "box" reported repeatedly, confirmed via a devtools inspector showing
+   div.book-experience at 424x848 with its own #F1F5E0 background against
+   the page's #fbf8f2. Scoped to body:has(.book-experience) so only the live
+   Book Experience route is affected — Admin/legacy routes, which don't
+   render this element, keep the original --ah-ivory backdrop untouched. */
+body:has(.book-experience) { background-color: #F1F5E0; }
+
+.book-experience {
+  --bk-ivory: #F9FCE8;
+  --bk-ivory-deep: #F1F5E0;
+  --bk-green: #6B7941;
+  --bk-green-deep: #3F4B28;
+  --bk-gold: #B89A5A;
+  --bk-marble: #E7E1D7;
+  --bk-ink: #172015;
+  --bk-ink-soft: rgba(23, 32, 21, 0.64);
+  --bk-ink-faint: rgba(23, 32, 21, 0.4);
+  --bk-line: rgba(23, 32, 21, 0.14);
+  --bk-line-green: rgba(107, 121, 65, 0.28);
+  --bk-font-display: "Cormorant Garamond", Georgia, "Times New Roman", serif;
+  --bk-font-sans: "Outfit", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  position: relative;
+  min-height: 100vh;
+  min-height: 100dvh;
+  max-width: 26.5rem;
+  margin: 0 auto;
+  background: var(--bk-ivory-deep);
+  color: var(--bk-ink);
+  font-family: var(--bk-font-sans);
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+
+.book-experience * { box-sizing: border-box; }
+
+.book-experience :focus-visible {
+  outline: 1px solid var(--bk-green);
+  outline-offset: 3px;
+}
+
+/* ---------- typography scale (clamp-based, never crushes) ---------- */
+.bk-h1 { font-family: var(--bk-font-display); font-weight: 500; font-size: clamp(1.9rem, 7vw, 2.6rem); line-height: 1.08; letter-spacing: -0.01em; }
+.bk-h2 { font-family: var(--bk-font-display); font-weight: 500; font-size: clamp(1.4rem, 5.5vw, 1.9rem); line-height: 1.14; }
+.bk-h3 { font-family: var(--bk-font-display); font-weight: 500; font-size: clamp(1.1rem, 4.4vw, 1.4rem); line-height: 1.2; }
+.bk-eyebrow { font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--bk-ink-soft); }
+.bk-body { font-size: 0.95rem; line-height: 1.6; color: var(--bk-ink-soft); }
+
+/* ---------- one button system ---------- */
+.bk-btn {
+  font-family: var(--bk-font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+  min-height: 44px;
+}
+.bk-btn:active { transform: scale(0.98); }
+.bk-btn--primary { background: var(--bk-green-deep); color: var(--bk-ivory); box-shadow: inset 0 0 0 1px var(--bk-gold); }
+.bk-btn--secondary { background: transparent; color: var(--bk-green-deep); border-color: var(--bk-line-green); }
+.bk-btn--text { background: none; border: none; color: var(--bk-green-deep); text-transform: none; letter-spacing: 0.02em; font-size: 0.85rem; padding: 0.4rem 0; gap: 0.35rem; }
+.bk-btn--gesture { background: rgba(23,32,21,0.06); color: var(--bk-ink-soft); border-radius: 999px; padding: 0.5rem 1rem; font-size: 0.68rem; }
+.bk-btn--bookmark {
+  background: var(--bk-ivory);
+  color: var(--bk-green-deep);
+  border-radius: 0.4rem 0.4rem 0 0;
+  box-shadow: 0 -1px 0 var(--bk-line-green);
+  padding: 0.6rem 0.9rem;
+}
+.bk-btn:disabled { opacity: 0.35; cursor: default; }
+
+/* ---------- chapter shell ---------- */
+.bk-chapter {
+  position: fixed;
+  inset: 0;
+  max-width: 26.5rem;
+  margin: 0 auto;
+  background: var(--bk-ivory);
+  overflow-y: auto;
+  overflow-x: clip;
+  z-index: 40;
+  -webkit-overflow-scrolling: touch;
+}
+
+.bk-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: calc(env(safe-area-inset-top) + 0.875rem) 1.25rem calc(env(safe-area-inset-bottom) + 5rem);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- header ----------
+   Persistent + sticky for the entire one-page experience (including over
+   Hero). Real visible search input as part of the header layout — not an
+   icon that opens a modal. z-index above everything, including the Book's
+   floating bottle. */
+.bk-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: calc(env(safe-area-inset-top) + 0.6rem) 1rem 0.6rem;
+  min-height: calc(env(safe-area-inset-top) + 64px);
+  background: rgba(249, 252, 232, 0.88);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--bk-line);
+}
+.bk-header-mark {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  line-height: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+.bk-header-mark img {
+  /* Item 1: premium brand-mark scale increase — header row height/padding
+     is unchanged (still calc(env(safe-area-inset-top) + 64px) below), the
+     mark itself just reads slightly larger within it. */
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: block;
+}
+
+/* ---------- Back row (Item 1/12) ----------
+   A distinct row immediately below the global header — never merged into
+   the header row itself, never a replacement for browser nav. Used by any
+   dedicated view (currently: Product Detail) that sits outside the normal
+   Hero/Book/Featured/Notes document flow and therefore needs its own
+   explicit header+back stack. */
+.bk-back-row {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background: var(--bk-ivory-deep);
+  border-bottom: 1px solid var(--bk-line);
+}
+.bk-back-row .bk-btn--text { padding: 0.4rem 0; }
+
+/* Detail rendered with a persistent header above it (Item 1/12): the
+   dedicated-view shell becomes a flex column (header -> back row ->
+   content) instead of the old position:fixed;inset:0 full-viewport overlay
+   (which used to visually sit ON TOP of a sticky header regardless of DOM
+   order — see BookExperience.jsx's historical note). `.bk-chapter` itself
+   is untouched (still used as-is by Scent Tray/Consultant/Most Loved,
+   none of which this pass touches); only the Product Detail instance opts
+   into the embedded variant below. */
+.bk-detail-shell {
+  display: flex;
+  flex-direction: column;
+}
+.bk-chapter--embedded {
+  position: relative;
+  inset: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  z-index: auto;
+}
+
+/* Real scroll anchors for Hero/Book/Featured/Notes — scroll-margin-top
+   matches the sticky header's own min-height so scrollIntoView never lands
+   partially under it. */
+.bk-section-anchor {
+  scroll-margin-top: calc(env(safe-area-inset-top) + 64px);
+}
+.bk-header-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--bk-ivory);
+  border: 1px solid var(--bk-line-green);
+  border-radius: 999px;
+  padding: 0.5rem 0.8rem;
+}
+.bk-header-search-icon { color: var(--bk-ink-faint); flex: 0 0 auto; }
+.bk-header-search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--bk-font-sans);
+  font-size: 0.85rem;
+  color: var(--bk-ink);
+}
+.bk-header-search-input::placeholder { color: var(--bk-ink-faint); }
+.bk-header-search-clear { border: none; background: none; color: var(--bk-ink-faint); cursor: pointer; display: grid; place-items: center; flex: 0 0 auto; }
+.bk-header-actions { display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
+.bk-header-icon-btn {
+  position: relative;
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--bk-line-green);
+  background: var(--bk-ivory);
+  display: grid;
+  place-items: center;
+  color: var(--bk-green-deep);
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+.bk-header-badge {
+  position: absolute;
+  top: -4px; right: -4px;
+  min-width: 18px; height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--bk-gold);
+  color: var(--bk-ink);
+  font-size: 0.62rem;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+
+/* ---------- inline quick-nav + inline search ----------
+   Both expand directly below the sticky header in normal document flow —
+   no backdrop, no dimming, no fixed overlay. Pushes Hero/Book/etc. down. */
+/* ---------- FULL-SCREEN navigation (override — Task 2) ----------
+   The hamburger destination is a genuine full-screen editorial nav screen,
+   NOT an inline expansion: position:fixed; inset:0, opaque deep-green
+   background with ivory text, above everything (z-index 200, above the
+   sticky header's 50 and the Detail-view z-index of 100). Large editorial
+   type, thin hairline separators, small trailing arrows — no pill/chip/
+   bubble chrome anywhere in this list. Search + Finder remain the separate
+   inline-on-main-page affordances they already were; only the hamburger
+   destination changed. */
+.bk-fullnav-wrapper {
+  position: fixed;
+  inset: 0;
+  max-width: 26.5rem;
+  margin: 0 auto;
+  z-index: 200;
+}
+.bk-fullnav-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 47, 29, 0.6);
+}
+.bk-fullnav {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: auto;
+  width: 85%;
+  background: var(--bk-green-deep);
+  color: var(--bk-ivory);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.35);
+}
+.bk-fullnav-topbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 1rem) 1.1rem 0.5rem;
+}
+.bk-fullnav-mark { display: flex; align-items: center; gap: 0.6rem; }
+.bk-fullnav-mark img { width: 34px; height: 34px; }
+.bk-fullnav-wordmark {
+  font-family: var(--bk-font-display);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: var(--bk-ivory);
+}
+.bk-fullnav-close {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: none;
+  border: 1px solid rgba(249, 252, 232, 0.32);
+  border-radius: 999px;
+  color: var(--bk-ivory);
+  font-family: var(--bk-font-sans);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 0 1rem;
+  cursor: pointer;
+}
+.bk-fullnav-list {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.5rem 1.3rem calc(env(safe-area-inset-bottom) + 2rem);
+}
+.bk-fullnav-item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  width: 100%;
+  font-family: var(--bk-font-display);
+  font-size: clamp(1.6rem, 8vw, 2.15rem);
+  font-weight: 500;
+  letter-spacing: 0.005em;
+  padding: 1.05rem 0.1rem;
+  border: none;
+  border-bottom: 1px solid rgba(249, 252, 232, 0.22);
+  background: none;
+  color: var(--bk-ivory);
+  text-align: left;
+  cursor: pointer;
+}
+.bk-fullnav-item:first-child { border-top: 1px solid rgba(249, 252, 232, 0.22); }
+.bk-fullnav-item:active { opacity: 0.7; }
+.bk-fullnav-item-arrow {
+  font-family: var(--bk-font-sans);
+  font-size: 0.9rem;
+  color: rgba(249, 252, 232, 0.55);
+  margin-left: 1rem;
+  flex: 0 0 auto;
+}
+
+/* ---------- Phase 2: Scent Tray confirmation toast ----------
+   Small, non-blocking, no screen darken. Contained to the mobile app
+   stage (same max-width + margin:auto centering as .bk-fullnav/.bk-chapter
+   so it never pins to the whole desktop browser on a wide preview).
+   z-index 60: above ordinary Detail content (.bk-chapter is 40) but below
+   the full-screen nav (200) if that were ever open at the same time. */
+.bk-toast {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 16px);
+  left: 0;
+  right: 0;
+  max-width: 26.5rem;
+  margin: 0 auto;
+  width: calc(100% - 2rem);
+  max-width: calc(26.5rem - 2rem);
+  z-index: 60;
+  background: var(--bk-green-deep);
+  color: var(--bk-ivory);
+  border-radius: 0.85rem;
+  box-shadow: 0 10px 28px rgba(23, 32, 21, 0.28);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  pointer-events: none;
+  animation: bk-toast-in 0.24s ease-out both;
+}
+@keyframes bk-toast-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.bk-toast-line1 {
+  font-family: var(--bk-font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--bk-ivory);
+}
+.bk-toast-line2 {
+  font-family: var(--bk-font-display);
+  font-size: 1rem;
+  color: var(--bk-ivory);
+}
+.bk-toast-line3 {
+  font-size: 0.7rem;
+  color: rgba(249, 252, 232, 0.7);
+}
+
+.bk-inline-search {
+  position: relative;
+  z-index: 49;
+  background: var(--bk-ivory);
+  border-bottom: 1px solid var(--bk-line);
+  /* Phase 3: this IS the "search mode" content now (Hero/Book/Featured/
+     Notes are unmounted while a query is active — see BookExperience.jsx),
+     so it must read as a full mode, not a short dropdown — solid ivory
+     continuing to the bottom of the viewport, no Hero visible beneath. */
+  min-height: calc(100dvh - 132px);
+}
+.bk-inline-search-empty { padding: 1.2rem; text-align: center; color: var(--bk-ink-soft); font-size: 0.85rem; }
+.bk-inline-search-list { list-style: none; margin: 0; padding: 0.4rem 0; }
+.bk-inline-search-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+}
+.bk-inline-search-row:active { background: var(--bk-ivory-deep); }
+.bk-inline-search-thumb {
+  flex: 0 0 auto;
+  width: 44px; height: 44px;
+  border-radius: 0.5rem;
+  background: var(--bk-marble);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.bk-inline-search-thumb img { width: 100%; height: 100%; object-fit: contain; }
+.bk-inline-search-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.bk-inline-search-name { font-size: 0.88rem; color: var(--bk-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bk-inline-search-meta { font-size: 0.72rem; color: var(--bk-ink-soft); margin-top: 0.15rem; }
+.bk-inline-search-arrow { flex: 0 0 auto; color: var(--bk-ink-faint); }
+
+/* ---------- Describe a Scent (Finder) — inline entry + panel ----------
+   Restrained secondary entry point directly under the search bar, and the
+   inline expanding panel it opens. Normal document flow throughout: no
+   fixed positioning, no backdrop. Collapse/expand uses max-height +
+   opacity + translateY (not scale-from-center), 260ms. */
+.bk-finder-entry-row {
+  position: relative;
+  z-index: 49;
+  padding: 0.35rem 1rem 0.55rem;
+  background: rgba(249, 252, 232, 0.88);
+  border-bottom: 1px solid var(--bk-line);
+}
+.bk-finder-entry {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: none;
+  background: none;
+  padding: 0.2rem 0;
+  color: var(--bk-green-deep);
+  font-family: var(--bk-font-sans);
+  font-size: 0.76rem;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.bk-finder-inline {
+  position: relative;
+  z-index: 49;
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-8px);
+  overflow: hidden;
+  background: var(--bk-ivory);
+  border-bottom: 0 solid var(--bk-line);
+  transition: max-height 0.28s ease, opacity 0.22s ease, transform 0.26s ease;
+}
+.bk-finder-inline.is-open {
+  max-height: 3200px;
+  opacity: 1;
+  transform: translateY(0);
+  border-bottom-width: 1px;
+}
+.bk-finder-inline-body {
+  padding: 1rem 1.1rem calc(1rem + env(safe-area-inset-bottom));
+}
+.bk-finder-lede {
+  font-family: var(--bk-font-display);
+  font-size: 1.05rem;
+  color: var(--bk-ink);
+  margin: 0.2rem 0 0.9rem;
+}
+.bk-finder-composer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+.bk-finder-input {
+  width: 100%;
+  border: 1px solid var(--bk-line-green);
+  border-radius: 0.6rem;
+  background: var(--bk-ivory-deep);
+  padding: 0.75rem 0.9rem;
+  font-family: var(--bk-font-sans);
+  font-size: 0.9rem;
+  color: var(--bk-ink);
+  outline: none;
+}
+.bk-finder-input::placeholder { color: var(--bk-ink-faint); }
+/* Item 17-18: full-width "FIND MY FRAGRANCE" button stacked under the
+   full-width input on mobile — the old `align-self: flex-start` shrank it
+   to its own text width instead of matching the input. `.bk-finder-composer`
+   is already a column flex, so removing the self-align and stretching is
+   enough; no desktop-only variant existed to preserve here. */
+.bk-finder-submit { align-self: stretch; width: 100%; }
+
+.bk-finder-interpretation { margin-top: 1.3rem; }
+.bk-finder-concepts {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.bk-finder-concept-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--bk-line-green);
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem 0.3rem 0.3rem;
+  font-size: 0.76rem;
+  color: var(--bk-green-deep);
+  background: var(--bk-ivory-deep);
+}
+.bk-finder-concept-chip img {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.bk-finder-concept-empty { font-size: 0.8rem; color: var(--bk-ink-soft); }
+.bk-finder-exclusions { margin-top: 0.5rem; font-size: 0.76rem; color: var(--bk-ink-soft); }
+
+.bk-finder-results { margin-top: 1.3rem; }
+.bk-finder-empty { padding: 0.8rem 0; color: var(--bk-ink-soft); font-size: 0.85rem; }
+
+.bk-finder-primary {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--bk-line);
+  border-radius: 0.9rem;
+  overflow: hidden;
+  margin-top: 0.6rem;
+  background: var(--bk-ivory-deep);
+}
+.bk-finder-primary-img-box {
+  display: block;
+  width: 100%;
+  border-radius: 0.6rem;
+  overflow: hidden;
+}
+.bk-finder-primary-img-box img {
+  /* Zero height constraint of any kind — width:100% + height:auto is a plain
+     natural-aspect-ratio render, nothing else. The previous max-height was
+     the actual bug: combined with object-fit:contain it shrank the VISIBLE
+     photo content to fit inside a shorter box, leaving empty letterbox
+     space — object-fit only matters when a box constrains BOTH dimensions,
+     so removing every height rule here removes any way for that gap to
+     reappear. The image ends exactly where the photo ends, full stop. */
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.bk-finder-primary-body { padding: 0.9rem 1rem 1.1rem; }
+.bk-finder-primary-meta { font-size: 0.78rem; color: var(--bk-ink-soft); margin: 0.25rem 0 0.8rem; }
+.bk-finder-discover { width: 100%; }
+
+.bk-finder-secondary-list { list-style: none; margin: 0.7rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
+.bk-finder-secondary-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.4rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  border-radius: 0.5rem;
+}
+.bk-finder-secondary-row:active { background: var(--bk-ivory-deep); }
+.bk-finder-secondary-img-box {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  border-radius: 0.4rem;
+  background: var(--bk-marble);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.bk-finder-secondary-img-box img { width: 100%; height: 100%; object-fit: contain; }
+.bk-finder-secondary-body { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; }
+.bk-finder-secondary-name { font-size: 0.85rem; color: var(--bk-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bk-finder-secondary-meta { font-size: 0.7rem; color: var(--bk-ink-soft); }
+
+.bk-finder-close { margin-top: 1.3rem; }
+
+.bk-visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bk-main-scroll { position: relative; z-index: 1; }
+
+/* ---------- intro: phase 1 (cinematic video), phase 2 (Welcome) ----------
+   Both phases are full-bleed, zero chrome (no header/search/nav). */
+.bk-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bk-green-deep);
+  display: grid;
+  place-items: center;
+  color: var(--bk-ivory);
+}
+.bk-intro--video { background: #000; }
+.bk-intro-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+
+/* ---------- Welcome screen — ceremonial, not onboarding.
+   No "skip", no step counter, no account language: a single ritual
+   moment between the cinematic and the Book itself. */
+.bk-intro--welcome {
+  background: radial-gradient(circle at 50% 18%, rgba(184,154,90,0.16), transparent 55%), var(--bk-green-deep);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.75rem;
+  padding: 2rem;
+  text-align: center;
+}
+.bk-welcome-mark { display: flex; flex-direction: column; align-items: center; gap: 1.1rem; }
+.bk-welcome-logo {
+  width: 84px;
+  height: auto;
+  filter: drop-shadow(0 0 22px rgba(184,154,90,0.35));
+}
+.bk-welcome-eyebrow {
+  font-family: var(--bk-font-sans);
+  font-size: 0.72rem;
+  letter-spacing: 0.32em;
+  font-weight: 400;
+  color: var(--bk-gold);
+  line-height: 1.7;
+}
+.bk-welcome-title {
+  font-family: var(--bk-font-display);
+  font-weight: 500;
+  font-size: clamp(2.3rem, 9vw, 3.1rem);
+  line-height: 1.05;
+  letter-spacing: 0.01em;
+  color: var(--bk-ivory);
+  position: relative;
+  padding-bottom: 0.9rem;
+}
+.bk-welcome-title::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 46px;
+  height: 1px;
+  background: var(--bk-gold);
+}
+.bk-welcome-sub {
+  font-family: var(--bk-font-display);
+  font-style: italic;
+  font-size: 1rem;
+  color: rgba(249,252,232,0.78);
+  margin-top: 0.4rem;
+}
+.bk-welcome-continue {
+  font-family: var(--bk-font-sans);
+  font-size: 0.78rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  background: var(--bk-ivory);
+  color: var(--bk-green-deep);
+  border: 1px solid var(--bk-gold);
+  border-radius: 999px;
+  padding: 1rem 2.6rem;
+  min-height: 48px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px rgba(184,154,90,0.25), 0 18px 30px rgba(0,0,0,0.28);
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+.bk-welcome-continue:active { transform: scale(0.97); }
+
+/* ---------- hero chapters ----------
+   Runs taller than one viewport (114svh) so a soft sliver of the Book's
+   top edge peeks in below the fold — a cue the Book exists beneath without
+   revealing or auto-scrolling to it. */
+.bk-hero { position: relative; height: 100svh; min-height: 92svh; max-height: 105svh; overflow: hidden; touch-action: pan-y; }
+/* Small persistent brand mark, top-left, over the media — same element
+   across all 3 slides (not re-mounted per slide) so it never flickers on
+   swipe. Localized shadow only, no dark block, for legibility over video. */
+.bk-hero-mark {
+  position: absolute;
+  top: calc(env(safe-area-inset-top) + 1rem);
+  left: 1.25rem;
+  z-index: 3;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 6px rgba(0,0,0,0.55));
+}
+.bk-hero-mark img { display: block; width: 34px; height: auto; }
+.bk-hero-track { position: absolute; inset: 0; display: flex; }
+/* Task-1 fix: slide is a pure stacking context now (no flex column) — media
+   fills the ENTIRE slide via position:absolute/inset:0, and copy is layered
+   on top of it in the same stacking context, not a separate flow block
+   after a shrunken video. This is what was producing "short rectangle video
+   + text block below it": .bk-hero-media used to be `flex:1`, ceding
+   whatever height .bk-hero-copy's own content needed. */
+.bk-hero-slide { position: relative; flex: 0 0 100%; width: 100%; height: 100%; }
+.bk-hero-media { position: absolute; inset: 0; overflow: hidden; }
+.bk-hero-media img, .bk-hero-media video { width: 100%; height: 100%; object-fit: cover; }
+.bk-hero-media::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 46%;
+  background: linear-gradient(to top, rgba(10,14,8,0.72) 0%, rgba(10,14,8,0.38) 45%, transparent 100%);
+  pointer-events: none;
+}
+/* Asymmetric per-scene composition — media crops toward the scene's
+   focal side instead of every scene being dead-center. */
+.bk-hero-slide--left .bk-hero-media img,
+.bk-hero-slide--left .bk-hero-media video { object-position: 30% center; }
+.bk-hero-slide--right .bk-hero-media img,
+.bk-hero-slide--right .bk-hero-media video { object-position: 72% center; }
+.bk-hero-slide--center .bk-hero-media img,
+.bk-hero-slide--center .bk-hero-media video { object-position: center 40%; }
+
+/* Content-safe zone, layered directly on top of the media (same stacking
+   context, position:absolute, NOT a separate flow block/card) — legible via
+   the localized gradient on .bk-hero-media::after above, never a solid
+   ivory panel or a full-video dark overlay. Text color flips to the ivory
+   palette here specifically, since it now sits over dark video/gradient
+   instead of a light card. */
+.bk-hero-copy {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 1.5rem 1.5rem calc(env(safe-area-inset-bottom) + 5.5rem);
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  color: var(--bk-ivory);
+}
+.bk-hero-copy .bk-eyebrow { color: rgba(249, 252, 232, 0.72); }
+.bk-hero-copy .bk-body { color: rgba(249, 252, 232, 0.88); }
+.bk-hero-copy .bk-h1 { color: var(--bk-ivory); text-shadow: 0 1px 10px rgba(0,0,0,0.35); }
+.bk-hero-copy--left { text-align: left; }
+.bk-hero-copy--right { text-align: right; align-items: flex-end; }
+.bk-hero-copy--right .bk-hero-progress { justify-content: flex-end; }
+.bk-hero-copy--center { text-align: center; }
+.bk-hero-copy--center .bk-hero-progress { justify-content: center; }
+
+.bk-hero-product-link { margin-top: 0.85rem; color: var(--bk-ivory); }
+.bk-hero-scroll-cue {
+  margin: 0.85rem 0 0;
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  color: rgba(249, 252, 232, 0.65);
+}
+
+/* "SWIPE" cue + thin progress line — no numeric counter, no dot carousel. */
+.bk-hero-progress { display: flex; align-items: center; gap: 0.7rem; padding-top: 0.9rem; }
+.bk-hero-progress-cue { font-size: 0.68rem; letter-spacing: 0.22em; color: rgba(249, 252, 232, 0.6); }
+.bk-hero-progress-track { flex: 0 1 96px; height: 2px; background: var(--bk-line-green); border-radius: 999px; overflow: hidden; }
+.bk-hero-progress-fill { display: block; height: 100%; background: var(--bk-gold); border-radius: 999px; }
+
+/* Soft cue that the Book exists below — a thin gradient sliver, not a
+   revealed preview. */
+.bk-hero-book-peek {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 3vh;
+  background: linear-gradient(to top, rgba(184,154,90,0.16), transparent);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.bk-hero-enter { position: absolute; bottom: calc(env(safe-area-inset-bottom) + 1.5rem); left: 50%; transform: translateX(-50%); z-index: 5; }
+
+/* ---------- fragrance book (main feature) ----------
+   Rebuilt this pass: the book is no longer a full-viewport modal-like
+   stage with text printed on top of the photo. It is one section in the
+   continuous page — eyebrow, then name/index/type ABOVE the book with a
+   real measured gap, then the large book photo + floating bottle, then
+   metadata BELOW the book. Exactly one instance each of
+   name/price/notes/sizes/Discover. */
+.bk-book-stage {
+  position: relative;
+  min-height: 100svh;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(env(safe-area-inset-top) + 2rem) 1.25rem calc(env(safe-area-inset-bottom) + 3rem);
+  background: radial-gradient(circle at 50% 20%, rgba(184,154,90,0.12), transparent 62%), var(--bk-ivory-deep);
+}
+
+.bk-book-eyebrow { text-align: center; }
+
+.bk-book-title-block {
+  text-align: center;
+  margin: 0.6rem 0 2rem; /* guaranteed measured gap before the book — no overlap */
+  max-width: 88%;
+}
+.bk-book-index { font-size: 0.68rem; letter-spacing: 0.14em; color: var(--bk-ink-faint); }
+.bk-book-title { margin-top: 0.3rem; }
+.bk-book-type { margin-top: 0.25rem; font-size: 0.78rem; color: var(--bk-ink-soft); }
+
+/* Single source of truth for the physical book's size — large/oversized on
+   purpose (~430-520px visual width at a 390px viewport). Source frames are
+   1280x720 (ratio 1.7778). */
+.bk-book-frame {
+  position: relative;
+  /* Reserved floating zone above the frame for the perfume — the bottle is
+     anchored via bottom:calc(100% + gap) below (see .bk-floating-bottle),
+     so it renders entirely above this box, never overlapping the page.
+     Sized tightly to the bottle's own height (max 228px) plus small gaps on
+     both sides — NOT a large fixed void independent of the bottle's size;
+     a bottle that doesn't fill most of this reserved space is exactly what
+     reads as "too much empty gap" between text and bottle. */
+  margin-top: 5rem; /* tightened now that a small book-overlap is
+    allowed — still keeps a safe buffer against the text above at the
+    widest supported viewport, verified live below */
+  width: min(96vw, calc(46vh * 1.7778), 34rem);
+  aspect-ratio: 1.7778;
+  min-height: 15.6rem;
+  max-height: 21.25rem;
+}
+.bk-book-base {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.bk-book-base img.bk-book-frame-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+  filter: drop-shadow(0 30px 40px rgba(23,32,21,0.28));
+}
+
+/* Bottle rises from the center gutter — an independent layer, not part of
+   the book photo, with its own AnimatePresence enter animation on
+   product-index change layered over the continuous drag-driven sink/fade. */
+.bk-book-bottle-zone {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+}
+.bk-book-bottle-enter {
+  position: absolute;
+  inset: 0;
+}
+
+.bk-book-drag-surface {
+  position: absolute;
+  inset: 0;
+  touch-action: pan-y;
+  z-index: 7;
+  background: transparent;
+}
+
+.bk-floating-bottle {
+  position: absolute;
+  left: 50%;
+  /* Floats entirely ABOVE the book frame (bottom:100% = frame's own top
+     edge, from .bk-book-bottle-zone's inset:0 reference box), with a real
+     gap so it never touches the page — not "bottom:20%" sitting inside the
+     frame's own box on the page, which was the previous (incorrect)
+     resting-on-the-book composition. */
+  bottom: calc(100% - 116px); /* dips slightly onto the book's page — small
+                                  overlap allowed, text overlap is not */
+  transform: translateX(-50%);
+  /* Box size reduced ~27% from the pre-trim values (34%/210px/185px/210px)
+     to compensate for the removed padding — object-fit:contain now fills
+     much more of the box per trimmed image, so shrinking the box keeps the
+     apparent/rendered bottle SIZE roughly the same as before, while the
+     gap-to-book finally means what it says. */
+  width: 37%; /* Item 4-5: slight hero-feel increase, within the reserved
+    zone's own documented budget (see .bk-book-frame's "max 228px" comment
+    above) so it never grows into the title block/header. */
+  max-width: 228px; /* was 211px */
+  min-height: 200px; /* was 186px */
+  max-height: 228px; /* was 211px */
+  z-index: 5;
+  pointer-events: none;
+  filter: drop-shadow(0 0 10px rgba(184,154,90,0.22)); /* radius pulled way
+    in from 26px — a wide soft glow was fading out well past the bottle's
+    real silhouette and reading as extra empty gap toward the book, even
+    though the box gap itself was already tight */
+}
+/* Item 4: object-fit:contain inside this fixed-size box is what already
+   gives every one of the 15 curated bottles (tall/narrow or short/wide
+   source images alike) the same consistent visual footprint — this box's
+   dimensions are the single source of truth for that, never the image's
+   own intrinsic aspect ratio. Only the box grew (above) for the "slightly
+   larger" requirement; this contain behavior itself is unchanged. */
+.bk-floating-bottle img { width: 100%; height: 100%; max-height: 228px; object-fit: contain; display: block; }
+.bk-floating-bottle-btn {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.bk-floating-bottle-btn img { width: 100%; height: 100%; max-height: 228px; object-fit: contain; display: block; }
+.bk-floating-shadow {
+  position: absolute;
+  left: 50%;
+  /* Sits just beneath the floating bottle's new position (see
+     .bk-floating-bottle's own position above the frame) — the shadow itself
+     is deliberately anchored INSIDE the frame's own box instead, landing on
+     the book's page near its top edge, so it reads as the bottle actually
+     casting a shadow down onto the book rather than floating in its own
+     separate zone with the bottle. */
+  top: 44%;
+  transform: translateX(-50%);
+  width: 26%;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(23,32,21,0.28), transparent 75%);
+  z-index: 4;
+}
+
+/* Metadata — BELOW the book. Plain text notes (not pills), one real price,
+   real sizes, exactly one Discover. */
+.bk-book-meta-block {
+  text-align: center;
+  margin-top: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: 90%;
+}
+.bk-book-price { color: var(--bk-green-deep); font-weight: 600; letter-spacing: 0.04em; font-size: 1.05rem; }
+.bk-book-sizes { color: var(--bk-ink-soft); font-size: 0.82rem; }
+.bk-book-notes-plain { color: var(--bk-ink-soft); font-size: 0.85rem; }
+.bk-book-discover { margin-top: 0.5rem; }
+
+/* Gesture-first page turn: unlabeled, near-invisible edge hit-zones instead
+   of visible Prev/Next buttons, layered above the drag surface so taps at
+   the very edge still resolve as a step rather than a drag. */
+.bk-book-edge {
+  position: absolute;
+  top: 8%;
+  bottom: 8%;
+  width: 8%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  z-index: 8;
+  padding: 0;
+}
+.bk-book-edge--prev { left: 0; }
+.bk-book-edge--next { right: 0; }
+.bk-book-edge:disabled { cursor: default; pointer-events: none; }
+
+/* ---------- bookmarks (physical book tabs) ----------
+   Anchored to the Book section (not viewport-fixed) since Book now scrolls
+   with the page — a true `position: fixed` here would stay pinned across
+   Hero/Featured/Notes too, which is wrong in the one-page layout. */
+.bk-bookmarks {
+  position: absolute;
+  right: 0;
+  top: 8rem;
+  z-index: 25;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.bk-more-panel {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: 0.6rem;
+  background: var(--bk-ivory);
+  box-shadow: inset 0 0 0 1px var(--bk-line-green);
+  max-width: 92%;
+}
+.bk-more-chip {
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--bk-line-green);
+  background: var(--bk-ivory);
+  color: var(--bk-green-deep);
+  cursor: pointer;
+}
+.bk-more-chip.is-active { background: var(--bk-green-deep); color: var(--bk-ivory); border-color: var(--bk-gold); }
+.bk-bookmark-tab {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  background: var(--bk-ivory);
+  border: 1px solid var(--bk-line-green);
+  border-right: none;
+  border-radius: 0.4rem 0 0 0.4rem;
+  padding: 0.65rem 0.35rem;
+  margin-right: 0.35rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  color: var(--bk-green-soft, var(--bk-green-deep));
+  opacity: 0.72;
+  cursor: pointer;
+  box-shadow: -2px 2px 6px rgba(23,32,21,0.08), inset 0 0 0 1px rgba(23,32,21,0.03);
+  transition: margin-right 0.25s ease, opacity 0.25s ease, background 0.25s ease, color 0.25s ease;
+}
+.bk-bookmark-tab-inner { display: inline-block; }
+.bk-bookmark-tab.is-active {
+  background: var(--bk-green-deep);
+  color: var(--bk-ivory);
+  opacity: 1;
+  margin-right: 0;
+  border-color: var(--bk-gold);
+  box-shadow: -3px 3px 10px rgba(23,32,21,0.22), inset 2px 0 0 var(--bk-gold);
+}
+.bk-bookmark-tab--more {
+  margin-top: 0.2rem;
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+/* ---------- product chapter ---------- */
+.bk-product-hero { position: relative; padding-top: 1rem; }
+.bk-product-bottle { display: flex; justify-content: center; padding: 1.5rem 0; }
+.bk-product-bottle img { max-width: 220px; width: 70%; height: auto; filter: drop-shadow(0 24px 30px rgba(23,32,21,0.2)); }
+.bk-product-name { text-align: center; }
+.bk-product-meta { text-align: center; margin-top: 0.4rem; }
+.bk-product-price { text-align: center; margin-top: 0.5rem; color: var(--bk-green-deep); font-weight: 600; }
+.bk-section { margin-top: 2.4rem; }
+
+/* ---------- scent tray ---------- */
+.bk-tray-item { display: flex; align-items: center; gap: 0.8rem; padding: 0.8rem 0; border-bottom: 1px solid var(--bk-line); }
+.bk-tray-item img { width: 56px; height: 56px; object-fit: contain; background: var(--bk-marble); border-radius: 0.5rem; }
+.bk-tray-item-name { font-weight: 500; }
+.bk-tray-item-meta { color: var(--bk-ink-soft); font-size: 0.8rem; }
+.bk-tray-remove { margin-left: auto; background: none; border: none; color: var(--bk-ink-faint); cursor: pointer; padding: 0.5rem; }
+
+/* ---------- consultant view ---------- */
+.bk-consultant { background: var(--bk-green-deep); color: var(--bk-ivory); min-height: 100vh; min-height: 100dvh; }
+.bk-consultant .bk-tray-item { border-color: rgba(249,252,232,0.16); }
+.bk-consultant .bk-tray-item-meta { color: rgba(249,252,232,0.7); }
+
+/* ---------- index chapter ---------- */
+.bk-index-list { margin-top: 1rem; display: flex; flex-direction: column; }
+.bk-index-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--bk-line);
+  background: none;
+  border-left: none; border-right: none; border-top: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  min-height: 44px;
+}
+.bk-index-num { font-family: var(--bk-font-display); font-size: 1.1rem; color: var(--bk-gold); }
+.bk-index-label { font-size: 1rem; letter-spacing: 0.02em; color: var(--bk-ink); }
+
+/* ---------- micro-interactions ---------- */
+@keyframes bk-bottle-travel {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.9) translateY(-6px); }
+  100% { transform: scale(1); }
+}
+.bk-bottle-travel img { animation: bk-bottle-travel 0.5s ease; }
+
+/* ---------- notes section wrapper (was `.bk-chapter`, now inline) ---------- */
+.bk-notes-section { position: relative; background: var(--bk-ivory-deep); }
+.bk-notes-inner { padding: 2.5rem 1.25rem calc(env(safe-area-inset-bottom) + 3rem); }
+
+/* ---------- featured fragrances ----------
+   One dominant item, horizontal swipe, small edge hint of the neighbor,
+   magazine-spread composition (not a white ecommerce card). Thin progress
+   line instead of a 01/03 counter. */
+.bk-featured {
+  position: relative;
+  padding: 3rem 1.5rem calc(env(safe-area-inset-bottom) + 2.5rem);
+  background: var(--bk-ivory);
+  overflow: hidden;
+}
+.bk-featured-eyebrow { text-align: center; margin-bottom: 1.2rem; }
+/* Item 7: the active slide must sit centered in the viewport, not drifted
+   right. The old fixed `padding-left: 6vw` stacked on top of `.bk-featured`'s
+   own 1.5rem section padding, pushing every slide well right of center with
+   no equivalent right-side compensation. This computes the exact offset
+   needed so slide 0 (x=0, the JS index math's origin) lands centered inside
+   the track's own content box, at any supported viewport width — same
+   index*SLIDE_PX transform math in FeaturedFragrances.jsx, untouched. */
+.bk-featured-track {
+  display: flex;
+  touch-action: pan-y;
+  padding-left: max(0px, calc((100% - 340px) / 2));
+}
+.bk-featured-slide {
+  flex: 0 0 auto;
+  padding-right: 1rem;
+  /* Item 8: subtle blurred/low-opacity look for the neighbor peeking in at
+     the edge — cleared for the active slide below. */
+  filter: blur(0px);
+  opacity: 1;
+  transition: filter 0.25s ease, opacity 0.25s ease;
+}
+.bk-featured-slide--peek {
+  filter: blur(3px);
+  opacity: 0.42;
+  pointer-events: none; /* Item 8: hint only — never an accidental tap target mid-swipe. */
+}
+.bk-featured-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  padding: 0;
+}
+.bk-featured-img-box {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: transparent;
+  overflow: hidden;
+}
+.bk-featured-img-box img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.bk-featured-text-group { display: flex; flex-direction: column; text-align: left; }
+@media (max-width: 768px) {
+  .bk-featured-text-group { width: fit-content; max-width: 100%; margin: 0 auto; }
+}
+.bk-featured-name { font-family: var(--bk-font-display); font-size: 1.3rem; margin-top: 0.9rem; color: var(--bk-ink); }
+.bk-featured-type { font-size: 0.76rem; color: var(--bk-ink-soft); margin-top: 0.2rem; }
+.bk-featured-price { font-size: 0.85rem; color: var(--bk-green-deep); font-weight: 600; margin-top: 0.35rem; }
+.bk-featured-progress { display: flex; justify-content: center; margin-top: 1.6rem; }
+.bk-featured-progress-track { width: 96px; height: 2px; background: var(--bk-line-green); border-radius: 999px; overflow: hidden; display: block; }
+.bk-featured-progress-fill { display: block; height: 100%; background: var(--bk-gold); border-radius: 999px; transition: width 0.3s ease; }
+
+/* ---------- footer (new) ----------
+   Mounted after Notes, still inside the single main-page scroll. Deep
+   heritage green background + ivory text + restrained gold detail, reusing
+   the same tokens as the rest of the book (no invented colors). */
+.bk-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 3rem 1.5rem calc(3rem + env(safe-area-inset-bottom));
+  background: var(--bk-green-deep);
+  color: var(--bk-ivory);
+}
+.bk-footer-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  margin-bottom: 0.6rem;
+  box-shadow: 0 0 0 1px rgba(184,154,90,0.5);
+}
+.bk-footer-brand {
+  font-family: var(--bk-font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.08em;
+  color: var(--bk-ivory);
+  margin: 0;
+}
+.bk-footer-tagline {
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--bk-gold);
+  margin: 0 0 1.4rem;
+}
+.bk-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem 1.1rem;
+  margin-bottom: 1.6rem;
+}
+.bk-footer-link {
+  border: none;
+  background: none;
+  color: rgba(249, 252, 232, 0.82);
+  font-size: 0.78rem;
+  letter-spacing: 0.03em;
+  padding: 0.3rem 0;
+  cursor: pointer;
+}
+.bk-footer-link:active { color: var(--bk-gold); }
+.bk-footer-top {
+  border: 1px solid rgba(184,154,90,0.5);
+  background: none;
+  color: var(--bk-gold);
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+  cursor: pointer;
+  margin-bottom: 1.4rem;
+}
+.bk-footer-copyright {
+  font-size: 0.66rem;
+  color: rgba(249, 252, 232, 0.5);
+  margin: 0;
+}
+
+/* ---------- reduced motion ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .book-experience * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

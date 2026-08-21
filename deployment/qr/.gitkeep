@@ -1,0 +1,3 @@
+# Real store QR codes go here, generated on the store machine with the actual
+# LAN URL (backend/scripts/generate_store_qr.py --url http://<STORE-IP>:8000/).
+# No placeholder/localhost QR is committed here — see deployment/README.md.

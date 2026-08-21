@@ -1,0 +1,25 @@
+/* Al Haramain — self-hosted type (no runtime Google Fonts).
+   Served from public/ so webpack never resolves these URLs. */
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: normal;
+  font-weight: 300 500;
+  font-display: swap;
+  src: url("/assets/fonts/cormorant-garamond.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/assets/fonts/cormorant-garamond-italic.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: "Outfit";
+  font-style: normal;
+  font-weight: 200 500;
+  font-display: swap;
+  src: url("/assets/fonts/outfit.woff2") format("woff2");
+}
